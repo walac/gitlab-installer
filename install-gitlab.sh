@@ -10,6 +10,7 @@ GITLAB_FLAVOR="gitlab-ce"
 
 # This is for postfix
 GITLAB_HOSTNAME="gitlab.invalid"
+GITLAB_HOSTNAME=$(ip add show dev eth1 | grep -w inet | awk '{print $2}')
 
 
 
@@ -57,6 +58,13 @@ set_apt_pdiff_off()
     echo 'Acquire::PDiffs "false";' > /etc/apt/apt.conf.d/85pdiff-off
 }
 
+install_ci_runner()
+{
+    apt-get install curl vim git -y
+    curl -sSL https://get.docker.com/ | sh
+    curl -L https://packages.gitlab.com/install/repositories/runner/gitlab-ci-multi-runner/script.deb.sh | sudo bash
+    apt-get install gitlab-ci-multi-runner
+}
 
 # All commands expect root access.
 check_for_root
@@ -88,6 +96,8 @@ apt-get install -y $GITLAB_FLAVOR
 # fix the config and reconfigure
 cp /vagrant/gitlab.rb /etc/gitlab/gitlab.rb
 gitlab-ctl reconfigure
+
+install_ci_runner
 
 # done
 echo "Done!"
